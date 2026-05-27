@@ -97,7 +97,7 @@ const DiagramCanvas = forwardRef(function DiagramCanvas({
     }
   }, [dragging, isPanning, panStart, canvasMode, groupDraw, getCanvasPos, setNodes, setGroups]);
 
-  const handleMouseUp = useCallback(() => {
+  const handleMouseUp = useCallback((e) => {
     setDragging(null);
     setIsPanning(false);
     if (canvasMode === 'group' && groupDraw && groupDraw.w > 40 && groupDraw.h > 40) {
@@ -112,11 +112,13 @@ const DiagramCanvas = forwardRef(function DiagramCanvas({
       }]);
     }
     setGroupDraw(null);
-  }, [canvasMode, groupDraw, setGroups]);
+    // Cancel arrow if mouseup on canvas background (not on a node)
+    if (arrowFrom) setArrowFrom(null);
+  }, [canvasMode, groupDraw, setGroups, arrowFrom]);
 
   const handleCanvasMouseDown = useCallback((e) => {
     setSelectedId(null);
-    if (arrowFrom) { setArrowFrom(null); return; }
+    if (arrowFrom) { return; } // don't cancel arrow on mousedown, wait for mouseup
     if (canvasMode === 'group') {
       const pos = getCanvasPos(e);
       setGroupDraw({ startX: pos.x, startY: pos.y, x: pos.x, y: pos.y, w: 0, h: 0 });
@@ -140,11 +142,6 @@ const DiagramCanvas = forwardRef(function DiagramCanvas({
     }
     setArrowFrom(null);
   }, [arrowFrom, arrows, setArrows]);
-
-  useEffect(() => {
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => window.removeEventListener('mouseup', handleMouseUp);
-  }, [handleMouseUp]);
 
   const removeNode = useCallback((id) => {
     setNodes(prev => prev.filter(n => n.id !== id));
@@ -174,6 +171,7 @@ const DiagramCanvas = forwardRef(function DiagramCanvas({
       onDragOver={handleDragOver}
       onMouseMove={handleMouseMove}
       onMouseDown={handleCanvasMouseDown}
+      onMouseUp={handleMouseUp}
     >
       {/* Grid */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ transform: `translate(${pan.x % gs}px, ${pan.y % gs}px)` }}>
@@ -210,7 +208,16 @@ const DiagramCanvas = forwardRef(function DiagramCanvas({
 
         {/* Nodes */}
         {nodes.map(node => (
-          <div key={node.id} onMouseDown={(e) => handleNodeMouseDown(e, node.id)}>
+          <div
+            key={node.id}
+            onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
+            onMouseUp={(e) => {
+              if (arrowFrom && arrowFrom !== node.id) {
+                e.stopPropagation();
+                handleArrowDrop(node.id);
+              }
+            }}
+          >
             <DiagramNode
               node={node}
               isSelected={selectedId === node.id}

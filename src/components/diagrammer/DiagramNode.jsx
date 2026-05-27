@@ -23,6 +23,13 @@ export default function DiagramNode({
     onSelect(node.id);
   };
 
+  const handleMouseUp = (e) => {
+    if (isArrowMode) {
+      e.stopPropagation();
+      onArrowDrop(node.id);
+    }
+  };
+
   return (
     <motion.div
       initial={{ scale: 0.7, opacity: 0 }}
@@ -30,21 +37,13 @@ export default function DiagramNode({
       className="absolute"
       style={{ left: node.x, top: node.y, zIndex: isSelected ? 100 : 20 }}
       onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
     >
-      {/* Drop zone for arrow target */}
-      {isArrowMode && (
-        <div
-          data-no-drag
-          onMouseUp={(e) => { e.stopPropagation(); onArrowDrop(node.id); }}
-          className="absolute inset-0 -inset-3 rounded-2xl z-50 cursor-crosshair"
-          style={{ background: 'rgba(99,102,241,0.12)', border: '2px dashed rgba(99,102,241,0.5)' }}
-        />
-      )}
-
       <div
         className={`
           relative flex flex-col items-center gap-2 px-3 py-3 cursor-pointer select-none
           rounded-2xl transition-all duration-150 group
+          ${isArrowMode ? 'ring-2 ring-indigo-500/60 ring-offset-1 ring-offset-transparent' : ''}
           ${isSelected ? 'ring-2 ring-white/40 ring-offset-2 ring-offset-transparent' : ''}
         `}
         style={{ width: 110 }}
