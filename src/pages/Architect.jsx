@@ -16,7 +16,7 @@ export default function Architect() {
   const [groups, setGroups] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [canvasMode, setCanvasMode] = useState('select');
-  const [rightPanel, setRightPanel] = useState('chat'); // 'chat' | 'info' | 'legend' | null
+  const [rightPanel, setRightPanel] = useState(null); // 'chat' | 'info' | 'legend' | null
   const [paletteOpen, setPaletteOpen] = useState(true);
   const [showTemplates, setShowTemplates] = useState(false);
   const [history, setHistory] = useState([]); // stack of {nodes, arrows, groups}
