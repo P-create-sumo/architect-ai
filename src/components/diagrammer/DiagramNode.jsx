@@ -2,7 +2,8 @@ import React, { useState, useRef } from 'react';
 import { SERVICE_LIBRARY } from '@/lib/serviceLibrary';
 import ServiceIcon from './ServiceIcon';
 import { X, Info } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 export default function DiagramNode({
   node,
@@ -17,27 +18,10 @@ export default function DiagramNode({
   const service = SERVICE_LIBRARY[node.serviceId];
   if (!service) return null;
 
-  const handleMouseDown = (e) => {
-    if (e.target.closest('[data-no-drag]')) return;
-    e.stopPropagation();
-    onSelect(node.id);
-  };
-
-  const handleMouseUp = (e) => {
-    if (isArrowMode) {
-      e.stopPropagation();
-      onArrowDrop(node.id);
-    }
-  };
-
   return (
-    <motion.div
-      initial={{ scale: 0.7, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
+    <div
       className="absolute"
       style={{ left: node.x, top: node.y, zIndex: isSelected ? 100 : 20 }}
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
     >
       <div
         className={`
@@ -108,6 +92,6 @@ export default function DiagramNode({
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }

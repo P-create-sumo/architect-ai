@@ -223,9 +223,8 @@ const DiagramCanvas = forwardRef(function DiagramCanvas({
           <div
             key={node.id}
             onMouseDown={(e) => {
-              if (!e.target.closest('[data-no-drag]') && !arrowFrom) {
-                e.stopPropagation(); // prevent canvas pan from starting
-              }
+              if (e.target.closest('[data-no-drag]')) return;
+              e.stopPropagation();
               handleNodeMouseDown(e, node.id);
             }}
             onMouseUp={(e) => {
