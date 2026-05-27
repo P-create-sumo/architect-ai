@@ -7,6 +7,7 @@ import DiagramToolbar from '@/components/diagrammer/DiagramToolbar';
 import InfoSidebar from '@/components/diagrammer/InfoSidebar';
 import AIArchitectChat from '@/components/diagrammer/AIArchitectChat';
 import TemplateLibrary from '@/components/diagrammer/TemplateLibrary';
+import useVersioning from '@/hooks/useVersioning';
 
 export default function Architect() {
   const [nodes, setNodes] = useState([]);
@@ -19,6 +20,17 @@ export default function Architect() {
   const [showTemplates, setShowTemplates] = useState(false);
   const [history, setHistory] = useState([]); // stack of {nodes, arrows, groups}
   const canvasRef = useRef(null);
+  const { versions, saveVersion, restoreVersion, deleteVersion, renameVersion } = useVersioning(nodes, arrows, groups);
+
+  const handleRestoreVersion = (versionId) => {
+    const snap = restoreVersion(versionId);
+    if (!snap) return;
+    setHistory(prev => [...prev, { nodes, arrows, groups }]);
+    setNodes(snap.nodes);
+    setArrows(snap.arrows);
+    setGroups(snap.groups);
+    setSelectedId(null);
+  };
 
   const handleDragStart = (e, serviceId) => {
     e.dataTransfer.setData('text/service-id', serviceId);
@@ -145,6 +157,11 @@ export default function Architect() {
         arrows={arrows}
         groups={groups}
         canvasRef={canvasRef}
+        versions={versions}
+        onSaveVersion={saveVersion}
+        onRestoreVersion={handleRestoreVersion}
+        onDeleteVersion={deleteVersion}
+        onRenameVersion={renameVersion}
       />
 
       {/* ── Body ── */}

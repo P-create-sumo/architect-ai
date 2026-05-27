@@ -1,8 +1,9 @@
 import React, { useRef, useState } from 'react';
-import { MousePointer2, Square, Trash2, Download } from 'lucide-react';
+import { MousePointer2, Square, Trash2, Download, History } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AnimatePresence } from 'framer-motion';
 import ExportPanel from './ExportPanel';
+import VersionPanel from './VersionPanel';
 
 export default function DiagramToolbar({
   canvasMode, setCanvasMode,
@@ -13,8 +14,14 @@ export default function DiagramToolbar({
   arrows,
   groups,
   canvasRef,
+  versions = [],
+  onSaveVersion,
+  onRestoreVersion,
+  onDeleteVersion,
+  onRenameVersion,
 }) {
   const [showExport, setShowExport] = useState(false);
+  const [showVersions, setShowVersions] = useState(false);
   const exportBtnRef = useRef(null);
   const tools = [
     { id: 'select', icon: MousePointer2, label: 'Seleziona / Sposta (V)' },
@@ -76,12 +83,46 @@ export default function DiagramToolbar({
           Drag per connettere → porta laterale
         </div>
 
+        {/* Versions button */}
+        <div className="relative">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => { setShowVersions(v => !v); setShowExport(false); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                  showVersions ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                }`}
+              >
+                <History className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Versioni</span>
+                {versions.length > 0 && (
+                  <span className="text-[9px] bg-violet-500/30 text-violet-300 rounded-full px-1.5 py-0.5">{versions.length}</span>
+                )}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Gestisci versioni del diagramma</TooltipContent>
+          </Tooltip>
+
+          <AnimatePresence>
+            {showVersions && (
+              <VersionPanel
+                versions={versions}
+                onSave={(name) => { onSaveVersion(name); }}
+                onRestore={(id) => { onRestoreVersion(id); setShowVersions(false); }}
+                onDelete={onDeleteVersion}
+                onRename={onRenameVersion}
+                onClose={() => setShowVersions(false)}
+              />
+            )}
+          </AnimatePresence>
+        </div>
+
         {/* Export button */}
         <div className="relative" ref={exportBtnRef}>
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onClick={() => setShowExport(v => !v)}
+                onClick={() => { setShowExport(v => !v); setShowVersions(false); }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
                   showExport ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'
                 }`}
