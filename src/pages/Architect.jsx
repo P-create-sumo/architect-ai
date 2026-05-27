@@ -48,7 +48,6 @@ export default function Architect() {
   // When a node is selected, show info panel
   const handleSelectId = (id) => {
     setSelectedId(id);
-    if (id) setRightPanel('info');
   };
 
   const handleApplyTemplate = (diagram, name) => {
