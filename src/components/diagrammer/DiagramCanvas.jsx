@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect, forwardRef } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useLayoutEffect, forwardRef } from 'react';
 import { SERVICE_LIBRARY } from '@/lib/serviceLibrary';
 import DiagramNode from './DiagramNode';
 import ArrowLayer from './ArrowLayer';
@@ -47,6 +47,7 @@ const DiagramCanvas = forwardRef(function DiagramCanvas({
   const handleNodeMouseDown = useCallback((e, nodeId) => {
     if (e.target.closest('[data-no-drag]')) return;
     if (arrowFrom) return;
+    e.preventDefault(); // prevent text selection while dragging
     const node = nodes.find(n => n.id === nodeId);
     if (!node) return;
     const pos = getCanvasPos(e);
@@ -156,6 +157,17 @@ const DiagramCanvas = forwardRef(function DiagramCanvas({
     setGroups(prev => prev.map(g => g.id === id ? { ...g, label } : g));
   }, [setGroups]);
 
+  // Release drag/pan on window mouseup (catches releases outside the canvas)
+  useEffect(() => {
+    const onWindowMouseUp = () => {
+      setDragging(null);
+      setIsPanning(false);
+      setGroupDraw(null);
+    };
+    window.addEventListener('mouseup', onWindowMouseUp);
+    return () => window.removeEventListener('mouseup', onWindowMouseUp);
+  }, []);
+
   // Grid dot size
   const gs = 28;
 
@@ -187,7 +199,7 @@ const DiagramCanvas = forwardRef(function DiagramCanvas({
       <div style={{ transform: `translate(${pan.x}px, ${pan.y}px)` }} className="absolute inset-0">
         {/* Groups */}
         {groups.map(g => (
-          <div key={g.id} onMouseDown={(e) => handleGroupMouseDown(e, g.id)}>
+          <div key={g.id} onMouseDown={(e) => { e.stopPropagation(); handleGroupMouseDown(e, g.id); }}>
             <GroupBox
               group={g}
               isSelected={selectedId === g.id}
@@ -210,7 +222,12 @@ const DiagramCanvas = forwardRef(function DiagramCanvas({
         {nodes.map(node => (
           <div
             key={node.id}
-            onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
+            onMouseDown={(e) => {
+              if (!e.target.closest('[data-no-drag]') && !arrowFrom) {
+                e.stopPropagation(); // prevent canvas pan from starting
+              }
+              handleNodeMouseDown(e, node.id);
+            }}
             onMouseUp={(e) => {
               if (arrowFrom && arrowFrom !== node.id) {
                 e.stopPropagation();
