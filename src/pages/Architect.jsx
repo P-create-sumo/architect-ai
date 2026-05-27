@@ -1,146 +1,98 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Sparkles, PanelLeftClose, PanelLeft } from 'lucide-react';
-import BlockPalette from '@/components/architect/BlockPalette';
-import CanvasArea from '@/components/architect/CanvasArea';
-import ComparisonView from '@/components/architect/ComparisonView';
-import AIPanel from '@/components/architect/AIPanel';
-import Toolbar from '@/components/architect/Toolbar';
-import { checkCoherence, LOGICAL_PHASES, CLOUD_SERVICES } from '@/lib/cloudComponents';
-import { base44 } from '@/api/base44Client';
+import React, { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
+import { Sparkles } from 'lucide-react';
+import ServicePalette from '@/components/diagrammer/ServicePalette';
+import DiagramCanvas from '@/components/diagrammer/DiagramCanvas';
+import DiagramToolbar from '@/components/diagrammer/DiagramToolbar';
+import InfoSidebar from '@/components/diagrammer/InfoSidebar';
+import AIDescriptionPanel from '@/components/diagrammer/AIDescriptionPanel';
 
 export default function Architect() {
   const [nodes, setNodes] = useState([]);
-  const [connections, setConnections] = useState([]);
-  const [selectedNode, setSelectedNode] = useState(null);
-  const [activeProvider, setActiveProvider] = useState(null);
-  const [viewMode, setViewMode] = useState('canvas');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [flowDescription, setFlowDescription] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [arrows, setArrows] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
+  const [canvasMode, setCanvasMode] = useState('select');
 
-  const warnings = useMemo(() => checkCoherence(nodes, connections), [nodes, connections]);
-
-  const handleDragStart = useCallback((e, phaseId) => {
-    e.dataTransfer.setData('text/phase', phaseId);
+  const handleDragStart = (e, serviceId) => {
+    e.dataTransfer.setData('text/service-id', serviceId);
     e.dataTransfer.effectAllowed = 'copy';
-  }, []);
+  };
 
-  const handleClearCanvas = useCallback(() => {
+  const handleClear = () => {
     setNodes([]);
-    setConnections([]);
-    setSelectedNode(null);
-    setFlowDescription('');
-  }, []);
+    setArrows([]);
+    setGroups([]);
+    setSelectedId(null);
+  };
 
-  const handleGenerateDescription = useCallback(async () => {
-    if (nodes.length === 0) return;
-    setIsGenerating(true);
-
-    const diagramDescription = nodes.map(n => {
-      const phase = LOGICAL_PHASES[n.phase];
-      const serviceName = n.service?.name || 'non assegnato';
-      const provider = n.provider || 'nessun provider';
-      return `- ${phase.label} (${phase.subtitle}): ${serviceName} [${provider.toUpperCase()}]`;
-    }).join('\n');
-
-    const connectionsDesc = connections.map(c => {
-      const from = nodes.find(n => n.id === c.from);
-      const to = nodes.find(n => n.id === c.to);
-      if (!from || !to) return '';
-      return `- ${from.service?.name || LOGICAL_PHASES[from.phase].label} → ${to.service?.name || LOGICAL_PHASES[to.phase].label}`;
-    }).filter(Boolean).join('\n');
-
-    const prompt = `Sei un Solution Architect esperto. Analizza questa architettura cloud e genera una descrizione chiara e concisa del flusso dati end-to-end, spiegando come i componenti interagiscono tra loro. Usa un linguaggio semplice e accessibile.
-
-Componenti dell'architettura:
-${diagramDescription}
-
-Connessioni (flusso dati):
-${connectionsDesc || 'Nessuna connessione definita'}
-
-Genera una descrizione del flusso dati in italiano, massimo 200 parole, spiegando passo per passo come i dati fluiscono attraverso l'architettura. Includi suggerimenti per migliorare se necessario.`;
-
-    const result = await base44.integrations.Core.InvokeLLM({ prompt });
-    setFlowDescription(result);
-    setIsGenerating(false);
-  }, [nodes, connections]);
+  const hasSelected = selectedId && (
+    nodes.some(n => n.id === selectedId) || groups.some(g => g.id === selectedId)
+  );
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden font-inter" style={{ background: 'hsl(220 25% 8%)' }}>
-      {/* Top bar */}
-      <header className="flex items-center justify-between px-5 py-3 border-b border-white/5" style={{ background: 'hsl(220 25% 10%)' }}>
+    <div className="h-screen flex flex-col overflow-hidden font-inter" style={{ background: '#1a1f2e' }}>
+      {/* Header */}
+      <header className="flex items-center justify-between px-5 py-2.5 border-b border-slate-800 flex-shrink-0" style={{ background: '#131720' }}>
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
-            <Sparkles className="w-4 h-4 text-white" />
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+            <Sparkles className="w-3.5 h-3.5 text-white" />
           </div>
           <div>
             <h1 className="text-sm font-bold text-white/90 tracking-tight">Architect AI Diagrammer</h1>
-            <p className="text-[10px] text-white/30">Solution Design · Multi-Cloud</p>
+            <p className="text-[10px] text-slate-600">Cloud Solution Design · AWS · Azure · GCP</p>
           </div>
         </div>
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 rounded-lg hover:bg-white/5 transition-colors"
-        >
-          {sidebarOpen ? (
-            <PanelLeftClose className="w-4 h-4 text-white/40" />
-          ) : (
-            <PanelLeft className="w-4 h-4 text-white/40" />
-          )}
-        </button>
+        <div className="flex items-center gap-4 text-[11px] text-slate-600">
+          <span className="hidden md:block">Trascina i componenti → Connetti con la porta laterale → Raggruppa con <kbd className="px-1 py-0.5 rounded bg-slate-700 text-slate-400 font-mono">G</kbd></span>
+        </div>
       </header>
 
       {/* Toolbar */}
-      <Toolbar
-        activeProvider={activeProvider}
-        setActiveProvider={setActiveProvider}
-        viewMode={viewMode}
-        setViewMode={setViewMode}
-        onClearCanvas={handleClearCanvas}
+      <DiagramToolbar
+        canvasMode={canvasMode}
+        setCanvasMode={setCanvasMode}
+        onClear={handleClear}
         nodeCount={nodes.length}
+        arrowCount={arrows.length}
       />
 
-      {/* Main content */}
+      {/* Body */}
       <div className="flex-1 flex min-h-0">
-        {/* Left sidebar */}
-        <motion.aside
-          animate={{ width: sidebarOpen ? 220 : 0, opacity: sidebarOpen ? 1 : 0 }}
-          transition={{ duration: 0.2 }}
-          className="flex-shrink-0 overflow-hidden border-r border-white/5"
-          style={{ background: 'hsl(220 25% 11%)' }}
+        {/* Palette */}
+        <aside
+          className="w-56 flex-shrink-0 border-r border-slate-800 flex flex-col overflow-hidden"
+          style={{ background: '#131720' }}
         >
-          <div className="w-[220px] h-full flex flex-col">
-            <div className="flex-1 p-3 overflow-y-auto">
-              <BlockPalette onDragStart={handleDragStart} />
-            </div>
-            <div className="p-3 border-t border-white/5">
-              <AIPanel
-                warnings={warnings}
-                onGenerateDescription={handleGenerateDescription}
-                flowDescription={flowDescription}
-                isGenerating={isGenerating}
-              />
-            </div>
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <ServicePalette onDragStart={handleDragStart} />
           </div>
-        </motion.aside>
+          <AIDescriptionPanel nodes={nodes} arrows={arrows} />
+        </aside>
 
-        {/* Canvas / Comparison View */}
-        <main className="flex-1 min-w-0">
-          {viewMode === 'canvas' ? (
-            <CanvasArea
-              nodes={nodes}
-              setNodes={setNodes}
-              connections={connections}
-              setConnections={setConnections}
-              selectedNode={selectedNode}
-              setSelectedNode={setSelectedNode}
-              activeProvider={activeProvider}
-            />
-          ) : (
-            <ComparisonView nodes={nodes} />
-          )}
+        {/* Canvas */}
+        <main className="flex-1 min-w-0 relative">
+          <DiagramCanvas
+            nodes={nodes} setNodes={setNodes}
+            arrows={arrows} setArrows={setArrows}
+            groups={groups} setGroups={setGroups}
+            selectedId={selectedId} setSelectedId={setSelectedId}
+            canvasMode={canvasMode}
+          />
         </main>
+
+        {/* Info sidebar */}
+        <AnimatePresence>
+          {hasSelected && (
+            <InfoSidebar
+              selectedId={selectedId}
+              nodes={nodes}
+              arrows={arrows}
+              groups={groups}
+              onClose={() => setSelectedId(null)}
+            />
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
