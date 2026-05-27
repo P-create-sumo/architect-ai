@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Sparkles, MessageSquare, Layers, X } from 'lucide-react';
 import ServicePalette from '@/components/diagrammer/ServicePalette';
 import DiagramCanvas from '@/components/diagrammer/DiagramCanvas';
 import DiagramToolbar from '@/components/diagrammer/DiagramToolbar';
 import InfoSidebar from '@/components/diagrammer/InfoSidebar';
-import AIDescriptionPanel from '@/components/diagrammer/AIDescriptionPanel';
+import AIArchitectChat from '@/components/diagrammer/AIArchitectChat';
 
 export default function Architect() {
   const [nodes, setNodes] = useState([]);
@@ -13,6 +13,8 @@ export default function Architect() {
   const [groups, setGroups] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [canvasMode, setCanvasMode] = useState('select');
+  const [rightPanel, setRightPanel] = useState('chat'); // 'chat' | 'info' | null
+  const [paletteOpen, setPaletteOpen] = useState(true);
 
   const handleDragStart = (e, serviceId) => {
     e.dataTransfer.setData('text/service-id', serviceId);
@@ -26,16 +28,36 @@ export default function Architect() {
     setSelectedId(null);
   };
 
+  // When a node is selected, show info panel
+  const handleSelectId = (id) => {
+    setSelectedId(id);
+    if (id) setRightPanel('info');
+  };
+
+  // Apply AI-generated diagram
+  const handleApplyDiagram = ({ nodes: newNodes, arrows: newArrows, groups: newGroups }) => {
+    setNodes(newNodes);
+    setArrows(newArrows);
+    setGroups(newGroups);
+    setSelectedId(null);
+    setRightPanel(null); // let user see the diagram
+  };
+
   const hasSelected = selectedId && (
     nodes.some(n => n.id === selectedId) || groups.some(g => g.id === selectedId)
   );
 
+  const showRightPanel = rightPanel === 'chat' || (rightPanel === 'info' && hasSelected);
+
   return (
     <div className="h-screen flex flex-col overflow-hidden font-inter" style={{ background: '#1a1f2e' }}>
-      {/* Header */}
-      <header className="flex items-center justify-between px-5 py-2.5 border-b border-slate-800 flex-shrink-0" style={{ background: '#131720' }}>
+      {/* ── Header ── */}
+      <header
+        className="flex items-center justify-between px-4 py-2 border-b border-slate-800 flex-shrink-0"
+        style={{ background: '#131720' }}
+      >
         <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
             <Sparkles className="w-3.5 h-3.5 text-white" />
           </div>
           <div>
@@ -43,12 +65,31 @@ export default function Architect() {
             <p className="text-[10px] text-slate-600">Cloud Solution Design · AWS · Azure · GCP</p>
           </div>
         </div>
-        <div className="flex items-center gap-4 text-[11px] text-slate-600">
-          <span className="hidden md:block">Trascina i componenti → Connetti con la porta laterale → Raggruppa con <kbd className="px-1 py-0.5 rounded bg-slate-700 text-slate-400 font-mono">G</kbd></span>
+
+        {/* Right panel toggles */}
+        <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-800">
+          <button
+            onClick={() => setPaletteOpen(v => !v)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+              paletteOpen ? 'bg-slate-600 text-white' : 'text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Palette</span>
+          </button>
+          <button
+            onClick={() => setRightPanel(v => v === 'chat' ? null : 'chat')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+              rightPanel === 'chat' ? 'bg-violet-600 text-white shadow-md shadow-violet-500/20' : 'text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">AI Chat</span>
+          </button>
         </div>
       </header>
 
-      {/* Toolbar */}
+      {/* ── Toolbar ── */}
       <DiagramToolbar
         canvasMode={canvasMode}
         setCanvasMode={setCanvasMode}
@@ -57,18 +98,27 @@ export default function Architect() {
         arrowCount={arrows.length}
       />
 
-      {/* Body */}
-      <div className="flex-1 flex min-h-0">
-        {/* Palette */}
-        <aside
-          className="w-56 flex-shrink-0 border-r border-slate-800 flex flex-col overflow-hidden"
-          style={{ background: '#131720' }}
-        >
-          <div className="flex-1 overflow-hidden flex flex-col">
-            <ServicePalette onDragStart={handleDragStart} />
-          </div>
-          <AIDescriptionPanel nodes={nodes} arrows={arrows} />
-        </aside>
+      {/* ── Body ── */}
+      <div className="flex-1 flex min-h-0 overflow-hidden">
+
+        {/* Left palette */}
+        <AnimatePresence initial={false}>
+          {paletteOpen && (
+            <motion.aside
+              key="palette"
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 220, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="flex-shrink-0 border-r border-slate-800 overflow-hidden"
+              style={{ background: '#131720' }}
+            >
+              <div className="w-[220px] h-full">
+                <ServicePalette onDragStart={handleDragStart} />
+              </div>
+            </motion.aside>
+          )}
+        </AnimatePresence>
 
         {/* Canvas */}
         <main className="flex-1 min-w-0 relative">
@@ -76,21 +126,76 @@ export default function Architect() {
             nodes={nodes} setNodes={setNodes}
             arrows={arrows} setArrows={setArrows}
             groups={groups} setGroups={setGroups}
-            selectedId={selectedId} setSelectedId={setSelectedId}
+            selectedId={selectedId} setSelectedId={handleSelectId}
             canvasMode={canvasMode}
           />
         </main>
 
-        {/* Info sidebar */}
-        <AnimatePresence>
-          {hasSelected && (
-            <InfoSidebar
-              selectedId={selectedId}
-              nodes={nodes}
-              arrows={arrows}
-              groups={groups}
-              onClose={() => setSelectedId(null)}
-            />
+        {/* Right panel — AI Chat or Info */}
+        <AnimatePresence initial={false}>
+          {showRightPanel && (
+            <motion.aside
+              key="right-panel"
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 320, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="flex-shrink-0 border-l border-slate-800 overflow-hidden"
+              style={{ background: '#131720' }}
+            >
+              <div className="w-[320px] h-full flex flex-col">
+                {/* Panel header with tabs */}
+                {hasSelected && (
+                  <div className="flex items-center border-b border-slate-800 flex-shrink-0" style={{ background: '#131720' }}>
+                    <button
+                      onClick={() => setRightPanel('chat')}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-medium transition-colors ${
+                        rightPanel === 'chat' ? 'text-violet-400 border-b-2 border-violet-500' : 'text-slate-600 hover:text-slate-400'
+                      }`}
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      AI Chat
+                    </button>
+                    <button
+                      onClick={() => setRightPanel('info')}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-medium transition-colors ${
+                        rightPanel === 'info' ? 'text-white border-b-2 border-white/30' : 'text-slate-600 hover:text-slate-400'
+                      }`}
+                    >
+                      <Layers className="w-3.5 h-3.5" />
+                      Dettagli
+                    </button>
+                    <button
+                      onClick={() => { setRightPanel(null); setSelectedId(null); }}
+                      className="px-3 py-2.5 text-slate-700 hover:text-slate-400 transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Panel content */}
+                <div className="flex-1 min-h-0 overflow-hidden">
+                  {rightPanel === 'chat' && (
+                    <AIArchitectChat
+                      onApplyDiagram={handleApplyDiagram}
+                      currentNodes={nodes}
+                      currentArrows={arrows}
+                    />
+                  )}
+                  {rightPanel === 'info' && hasSelected && (
+                    <InfoSidebar
+                      selectedId={selectedId}
+                      nodes={nodes}
+                      arrows={arrows}
+                      groups={groups}
+                      onClose={() => { setRightPanel('chat'); setSelectedId(null); }}
+                      inline
+                    />
+                  )}
+                </div>
+              </div>
+            </motion.aside>
           )}
         </AnimatePresence>
       </div>

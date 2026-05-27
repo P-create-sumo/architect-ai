@@ -1,33 +1,43 @@
 import React from 'react';
 import { SERVICE_LIBRARY } from '@/lib/serviceLibrary';
 import ServiceIcon from './ServiceIcon';
-import { X, ArrowRight, Link2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { X, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-export default function InfoSidebar({ selectedId, nodes, arrows, groups, onClose }) {
+export default function InfoSidebar({ selectedId, nodes, arrows, groups, onClose, inline }) {
   const node = nodes.find(n => n.id === selectedId);
   const group = groups.find(g => g.id === selectedId);
 
   if (!node && !group) return null;
 
-  if (group) {
-    return (
+  const Wrapper = ({ children, className, style }) => inline
+    ? <div className={className} style={style}>{children}</div>
+    : (
       <motion.div
         initial={{ x: 300, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: 300, opacity: 0 }}
-        className="w-64 border-l border-slate-800 flex flex-col"
-        style={{ background: '#1a1f2e' }}
+        className={className}
+        style={style}
       >
+        {children}
+      </motion.div>
+    );
+
+  if (group) {
+    return (
+      <Wrapper className="w-full flex flex-col h-full" style={{ background: '#1a1f2e' }}>
         <div className="flex items-center justify-between p-4 border-b border-slate-800">
           <p className="text-sm font-semibold text-white/80">Gruppo</p>
-          <button onClick={onClose} className="p-1 rounded hover:bg-slate-700"><X className="w-4 h-4 text-slate-500" /></button>
+          <button onClick={onClose} className="p-1 rounded hover:bg-slate-700">
+            <X className="w-4 h-4 text-slate-500" />
+          </button>
         </div>
         <div className="p-4">
           <p className="text-xs text-slate-500">{group.label}</p>
           <p className="text-[11px] text-slate-600 mt-2">Doppio click sul nome per modificarlo.</p>
         </div>
-      </motion.div>
+      </Wrapper>
     );
   }
 
@@ -38,18 +48,13 @@ export default function InfoSidebar({ selectedId, nodes, arrows, groups, onClose
   const incoming = arrows.filter(a => a.to === node.id);
 
   return (
-    <motion.div
-      key={selectedId}
-      initial={{ x: 300, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: 300, opacity: 0 }}
-      className="w-64 border-l border-slate-800 flex flex-col overflow-y-auto"
-      style={{ background: '#1a1f2e' }}
-    >
+    <Wrapper className="w-full flex flex-col overflow-y-auto h-full" style={{ background: '#1a1f2e' }}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-800">
+      <div className="flex items-center justify-between p-4 border-b border-slate-800 flex-shrink-0">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Dettaglio Servizio</p>
-        <button onClick={onClose} className="p-1 rounded hover:bg-slate-700"><X className="w-4 h-4 text-slate-500" /></button>
+        <button onClick={onClose} className="p-1 rounded hover:bg-slate-700">
+          <X className="w-4 h-4 text-slate-500" />
+        </button>
       </div>
 
       {/* Service info */}
@@ -104,6 +109,6 @@ export default function InfoSidebar({ selectedId, nodes, arrows, groups, onClose
           </div>
         )}
       </div>
-    </motion.div>
+    </Wrapper>
   );
 }
