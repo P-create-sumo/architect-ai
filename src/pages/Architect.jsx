@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Sparkles, MessageSquare, Layers, X, Undo2, LayoutTemplate } from 'lucide-react';
+import { Sparkles, MessageSquare, Layers, X, Undo2, LayoutTemplate, BookOpen } from 'lucide-react';
 import ServicePalette from '@/components/diagrammer/ServicePalette';
 import DiagramCanvas from '@/components/diagrammer/DiagramCanvas';
 import DiagramToolbar from '@/components/diagrammer/DiagramToolbar';
@@ -8,6 +8,7 @@ import InfoSidebar from '@/components/diagrammer/InfoSidebar';
 import AIArchitectChat from '@/components/diagrammer/AIArchitectChat';
 import TemplateLibrary from '@/components/diagrammer/TemplateLibrary';
 import useVersioning from '@/hooks/useVersioning';
+import LegendPanel from '@/components/diagrammer/LegendPanel';
 
 export default function Architect() {
   const [nodes, setNodes] = useState([]);
@@ -15,7 +16,7 @@ export default function Architect() {
   const [groups, setGroups] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [canvasMode, setCanvasMode] = useState('select');
-  const [rightPanel, setRightPanel] = useState('chat'); // 'chat' | 'info' | null
+  const [rightPanel, setRightPanel] = useState('chat'); // 'chat' | 'info' | 'legend' | null
   const [paletteOpen, setPaletteOpen] = useState(true);
   const [showTemplates, setShowTemplates] = useState(false);
   const [history, setHistory] = useState([]); // stack of {nodes, arrows, groups}
@@ -99,7 +100,7 @@ export default function Architect() {
     nodes.some(n => n.id === selectedId) || groups.some(g => g.id === selectedId)
   );
 
-  const showRightPanel = rightPanel === 'chat' || (rightPanel === 'info' && hasSelected);
+  const showRightPanel = rightPanel === 'chat' || rightPanel === 'legend' || (rightPanel === 'info' && hasSelected);
 
   return (
     <div className="h-screen flex flex-col overflow-hidden font-inter" style={{ background: '#1a1f2e' }}>
@@ -149,6 +150,18 @@ export default function Architect() {
               <span className="text-[9px] bg-amber-500/20 rounded px-1">{history.length}</span>
             </button>
           )}
+          <button
+            onClick={() => setRightPanel(v => v === 'legend' ? null : 'legend')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+              rightPanel === 'legend' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20' : 'text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Legenda</span>
+            {nodes.length > 0 && (
+              <span className="text-[9px] bg-emerald-500/20 text-emerald-300 rounded-full px-1.5 py-0.5">{[...new Set(nodes.map(n => n.serviceId))].length}</span>
+            )}
+          </button>
           <button
             onClick={() => setRightPanel(v => v === 'chat' ? null : 'chat')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
@@ -236,17 +249,26 @@ export default function Architect() {
             >
               <div className="w-[320px] h-full flex flex-col">
                 {/* Panel header with tabs */}
-                {hasSelected && (
-                  <div className="flex items-center border-b border-slate-800 flex-shrink-0" style={{ background: '#131720' }}>
-                    <button
-                      onClick={() => setRightPanel('chat')}
-                      className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-medium transition-colors ${
-                        rightPanel === 'chat' ? 'text-violet-400 border-b-2 border-violet-500' : 'text-slate-600 hover:text-slate-400'
-                      }`}
-                    >
-                      <MessageSquare className="w-3.5 h-3.5" />
-                      AI Chat
-                    </button>
+                <div className="flex items-center border-b border-slate-800 flex-shrink-0" style={{ background: '#131720' }}>
+                  <button
+                    onClick={() => setRightPanel('chat')}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-medium transition-colors ${
+                      rightPanel === 'chat' ? 'text-violet-400 border-b-2 border-violet-500' : 'text-slate-600 hover:text-slate-400'
+                    }`}
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    AI Chat
+                  </button>
+                  <button
+                    onClick={() => setRightPanel('legend')}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-medium transition-colors ${
+                      rightPanel === 'legend' ? 'text-emerald-400 border-b-2 border-emerald-500' : 'text-slate-600 hover:text-slate-400'
+                    }`}
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    Legenda
+                  </button>
+                  {hasSelected && (
                     <button
                       onClick={() => setRightPanel('info')}
                       className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-medium transition-colors ${
@@ -256,14 +278,14 @@ export default function Architect() {
                       <Layers className="w-3.5 h-3.5" />
                       Dettagli
                     </button>
-                    <button
-                      onClick={() => { setRightPanel(null); setSelectedId(null); }}
-                      className="px-3 py-2.5 text-slate-700 hover:text-slate-400 transition-colors"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                )}
+                  )}
+                  <button
+                    onClick={() => { setRightPanel(null); setSelectedId(null); }}
+                    className="px-3 py-2.5 text-slate-700 hover:text-slate-400 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
 
                 {/* Panel content */}
                 <div className="flex-1 min-h-0 overflow-hidden">
@@ -275,6 +297,9 @@ export default function Architect() {
                       currentNodes={nodes}
                       currentArrows={arrows}
                     />
+                  )}
+                  {rightPanel === 'legend' && (
+                    <LegendPanel nodes={nodes} />
                   )}
                   {rightPanel === 'info' && hasSelected && (
                     <InfoSidebar
