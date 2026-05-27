@@ -1,13 +1,21 @@
-import React from 'react';
-import { MousePointer2, Square, Trash2, Download, Undo2, ZoomIn, ZoomOut } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { MousePointer2, Square, Trash2, Download } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { AnimatePresence } from 'framer-motion';
+import ExportPanel from './ExportPanel';
 
 export default function DiagramToolbar({
   canvasMode, setCanvasMode,
   onClear,
   nodeCount,
   arrowCount,
+  nodes,
+  arrows,
+  groups,
+  canvasRef,
 }) {
+  const [showExport, setShowExport] = useState(false);
+  const exportBtnRef = useRef(null);
   const tools = [
     { id: 'select', icon: MousePointer2, label: 'Seleziona / Sposta (V)' },
     { id: 'group', icon: Square, label: 'Disegna Gruppo / VPC (G)' },
@@ -66,6 +74,36 @@ export default function DiagramToolbar({
 
         <div className="px-3 py-1.5 rounded-lg bg-slate-800 text-[10px] text-slate-500 font-mono">
           Drag per connettere → porta laterale
+        </div>
+
+        {/* Export button */}
+        <div className="relative" ref={exportBtnRef}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => setShowExport(v => !v)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                  showExport ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                }`}
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Esporta</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Esporta come PNG o PDF</TooltipContent>
+          </Tooltip>
+
+          <AnimatePresence>
+            {showExport && (
+              <ExportPanel
+                nodes={nodes}
+                arrows={arrows}
+                groups={groups}
+                canvasRef={canvasRef}
+                onClose={() => setShowExport(false)}
+              />
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </TooltipProvider>

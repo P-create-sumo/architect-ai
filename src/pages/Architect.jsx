@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Sparkles, MessageSquare, Layers, X, Undo2 } from 'lucide-react';
+import { Sparkles, MessageSquare, Layers, X, Undo2, LayoutTemplate } from 'lucide-react';
 import ServicePalette from '@/components/diagrammer/ServicePalette';
 import DiagramCanvas from '@/components/diagrammer/DiagramCanvas';
 import DiagramToolbar from '@/components/diagrammer/DiagramToolbar';
 import InfoSidebar from '@/components/diagrammer/InfoSidebar';
 import AIArchitectChat from '@/components/diagrammer/AIArchitectChat';
+import TemplateLibrary from '@/components/diagrammer/TemplateLibrary';
 
 export default function Architect() {
   const [nodes, setNodes] = useState([]);
@@ -15,7 +16,9 @@ export default function Architect() {
   const [canvasMode, setCanvasMode] = useState('select');
   const [rightPanel, setRightPanel] = useState('chat'); // 'chat' | 'info' | null
   const [paletteOpen, setPaletteOpen] = useState(true);
+  const [showTemplates, setShowTemplates] = useState(false);
   const [history, setHistory] = useState([]); // stack of {nodes, arrows, groups}
+  const canvasRef = useRef(null);
 
   const handleDragStart = (e, serviceId) => {
     e.dataTransfer.setData('text/service-id', serviceId);
@@ -33,6 +36,16 @@ export default function Architect() {
   const handleSelectId = (id) => {
     setSelectedId(id);
     if (id) setRightPanel('info');
+  };
+
+  const handleApplyTemplate = (diagram, name) => {
+    setHistory(prev => [...prev, { nodes, arrows, groups }]);
+    setNodes(diagram.nodes);
+    setArrows(diagram.arrows);
+    setGroups(diagram.groups);
+    setSelectedId(null);
+    setShowTemplates(false);
+    setRightPanel('chat');
   };
 
   // Apply AI-generated diagram (save snapshot for undo)
@@ -81,6 +94,15 @@ export default function Architect() {
         {/* Right panel toggles */}
         <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-800">
           <button
+            onClick={() => setShowTemplates(v => !v)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+              showTemplates ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' : 'text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            <LayoutTemplate className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Template</span>
+          </button>
+          <button
             onClick={() => setPaletteOpen(v => !v)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
               paletteOpen ? 'bg-slate-600 text-white' : 'text-slate-500 hover:text-slate-300'
@@ -119,6 +141,10 @@ export default function Architect() {
         onClear={handleClear}
         nodeCount={nodes.length}
         arrowCount={arrows.length}
+        nodes={nodes}
+        arrows={arrows}
+        groups={groups}
+        canvasRef={canvasRef}
       />
 
       {/* ── Body ── */}
@@ -146,12 +172,22 @@ export default function Architect() {
         {/* Canvas */}
         <main className="flex-1 min-w-0 relative">
           <DiagramCanvas
+            ref={canvasRef}
             nodes={nodes} setNodes={setNodes}
             arrows={arrows} setArrows={setArrows}
             groups={groups} setGroups={setGroups}
             selectedId={selectedId} setSelectedId={handleSelectId}
             canvasMode={canvasMode}
           />
+          {/* Template library overlay */}
+          <AnimatePresence>
+            {showTemplates && (
+              <TemplateLibrary
+                onApply={handleApplyTemplate}
+                onClose={() => setShowTemplates(false)}
+              />
+            )}
+          </AnimatePresence>
         </main>
 
         {/* Right panel — AI Chat or Info */}

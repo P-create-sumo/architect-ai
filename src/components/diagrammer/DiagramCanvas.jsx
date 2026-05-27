@@ -1,17 +1,18 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, forwardRef } from 'react';
 import { SERVICE_LIBRARY } from '@/lib/serviceLibrary';
 import DiagramNode from './DiagramNode';
 import ArrowLayer from './ArrowLayer';
 import GroupBox from './GroupBox';
 
-export default function DiagramCanvas({
+const DiagramCanvas = forwardRef(function DiagramCanvas({
   nodes, setNodes,
   arrows, setArrows,
   groups, setGroups,
   selectedId, setSelectedId,
   canvasMode, // 'select' | 'group'
-}) {
-  const canvasRef = useRef(null);
+}, ref) {
+  const internalRef = useRef(null);
+  const canvasRef = ref || internalRef;
   const [dragging, setDragging] = useState(null); // { id, offsetX, offsetY, type }
   const [arrowFrom, setArrowFrom] = useState(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -249,4 +250,6 @@ export default function DiagramCanvas({
       )}
     </div>
   );
-}
+});
+
+export default DiagramCanvas;
