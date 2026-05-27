@@ -58,20 +58,15 @@ export default function TemplateLibrary({ onApply, onClose }) {
                 </div>
               </div>
 
-              <AnimatePresence>
-                {hoveredId === tpl.id && (
-                  <motion.button
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    onClick={() => onApply(tpl.diagram, tpl.name)}
-                    className="w-full mt-2.5 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 text-[10px] font-semibold hover:bg-indigo-500/25 transition-all"
-                  >
-                    <CheckCircle2 className="w-3 h-3" />
-                    Carica nel diagramma
-                  </motion.button>
-                )}
-              </AnimatePresence>
+              <button
+                onClick={() => onApply(tpl.diagram, tpl.name)}
+                className={`w-full mt-2.5 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 text-[10px] font-semibold hover:bg-indigo-500/25 transition-all ${
+                  hoveredId === tpl.id ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                }`}
+              >
+                <CheckCircle2 className="w-3 h-3" />
+                Carica nel diagramma
+              </button>
             </div>
           </motion.div>
         ))}

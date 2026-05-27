@@ -51,10 +51,25 @@ export default function Architect() {
   };
 
   const handleApplyTemplate = (diagram, name) => {
+    const ts = Date.now();
+    // Remap template IDs to unique ones to avoid collisions on repeated loads
+    const idMap = {};
+    diagram.nodes.forEach((n, i) => { idMap[n.id] = `tpl_n${ts}_${i}`; });
+    diagram.groups.forEach((g, i) => { idMap[g.id] = `tpl_g${ts}_${i}`; });
+
+    const newNodes = diagram.nodes.map(n => ({ ...n, id: idMap[n.id] }));
+    const newArrows = diagram.arrows.map((a, i) => ({
+      ...a,
+      id: `tpl_a${ts}_${i}`,
+      from: idMap[a.from] || a.from,
+      to: idMap[a.to] || a.to,
+    }));
+    const newGroups = diagram.groups.map(g => ({ ...g, id: idMap[g.id] }));
+
     setHistory(prev => [...prev, { nodes, arrows, groups }]);
-    setNodes(diagram.nodes);
-    setArrows(diagram.arrows);
-    setGroups(diagram.groups);
+    setNodes(newNodes);
+    setArrows(newArrows);
+    setGroups(newGroups);
     setSelectedId(null);
     setShowTemplates(false);
     setRightPanel('chat');
