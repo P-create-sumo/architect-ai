@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SERVICE_LIBRARY, CATEGORIES, PROVIDERS, getServicesByProvider } from '@/lib/serviceLibrary';
 import ServiceIcon from './ServiceIcon';
+import CostEstimator from './CostEstimator';
 import { Search, ChevronDown, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -38,7 +39,7 @@ function PaletteItem({ svc, onDragStart }) {
   );
 }
 
-export default function ServicePalette({ onDragStart }) {
+export default function ServicePalette({ onDragStart, nodes = [] }) {
   const [search, setSearch] = useState('');
   const [activeProvider, setActiveProvider] = useState('aws');
   const [collapsed, setCollapsed] = useState({});
@@ -87,6 +88,9 @@ export default function ServicePalette({ onDragStart }) {
           />
         </div>
       </div>
+
+      {/* Cost estimator */}
+      {nodes.length > 0 && <CostEstimator nodes={nodes} />}
 
       {/* Services grouped */}
       <div className="flex-1 overflow-y-auto py-2 space-y-1">

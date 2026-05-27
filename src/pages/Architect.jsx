@@ -163,7 +163,7 @@ export default function Architect() {
               style={{ background: '#131720' }}
             >
               <div className="w-[220px] h-full">
-                <ServicePalette onDragStart={handleDragStart} />
+                <ServicePalette onDragStart={handleDragStart} nodes={nodes} />
               </div>
             </motion.aside>
           )}
