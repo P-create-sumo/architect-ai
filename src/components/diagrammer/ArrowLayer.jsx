@@ -21,7 +21,7 @@ export default function ArrowLayer({ arrows, nodes, tempArrow, mousePos }) {
     >
       <defs>
         <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-          <polygon points="0 0, 10 3.5, 0 7" fill="rgba(255,255,255,0.5)" />
+          <polygon points="0 0, 10 3.5, 0 7" fill="#334155" />
         </marker>
         <marker id="arrowhead-temp" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
           <polygon points="0 0, 10 3.5, 0 7" fill="rgba(99,102,241,0.7)" />
@@ -53,18 +53,18 @@ export default function ArrowLayer({ arrows, nodes, tempArrow, mousePos }) {
         return (
           <g key={arrow.id}>
             {/* Glow trail */}
-            <path d={path} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="8" strokeLinecap="round" />
+            <path d={path} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="6" strokeLinecap="round" />
             {/* Main arrow */}
             <path
               d={path}
               fill="none"
-              stroke="rgba(255,255,255,0.35)"
-              strokeWidth="1.5"
+              stroke="#334155"
+              strokeWidth="2"
               strokeLinecap="round"
               markerEnd="url(#arrowhead)"
             />
             {/* Moving dot */}
-            <circle r="2.5" fill="rgba(255,255,255,0.6)">
+            <circle r="2.5" fill="#64748b">
               <animateMotion dur="2.5s" repeatCount="indefinite" path={path} />
             </circle>
           </g>
