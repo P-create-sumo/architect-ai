@@ -44,7 +44,7 @@ export default function DiagramNode({
       <div
         className={`
           relative flex flex-col items-center gap-2 px-3 py-3 cursor-pointer select-none
-          rounded-2xl transition-all duration-150
+          rounded-2xl transition-all duration-150 group
           ${isSelected ? 'ring-2 ring-white/40 ring-offset-2 ring-offset-transparent' : ''}
         `}
         style={{ width: 110 }}
@@ -59,13 +59,12 @@ export default function DiagramNode({
           <X className="w-3 h-3 text-white" />
         </button>
 
-        {/* Info / tooltip trigger */}
+        {/* Info / tooltip trigger — always visible on hover */}
         <button
           data-no-drag
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
-          className="absolute -top-2 -left-2 w-5 h-5 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center z-10 opacity-0 hover:opacity-100"
-          style={{ opacity: isSelected ? 1 : undefined }}
+          className="absolute -top-2 -left-2 w-5 h-5 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity"
         >
           <Info className="w-3 h-3 text-slate-400" />
         </button>

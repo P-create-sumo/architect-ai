@@ -4,6 +4,40 @@ import ServiceIcon from './ServiceIcon';
 import { Search, ChevronDown, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+function PaletteItem({ svc, onDragStart }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      draggable
+      onDragStart={(e) => onDragStart(e, svc.id)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="px-2 py-2 rounded-lg cursor-grab active:cursor-grabbing hover:bg-slate-800 transition-colors group"
+    >
+      <div className="flex items-center gap-2.5">
+        <ServiceIcon service={svc} size="palette" />
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-semibold text-slate-300 truncate">{svc.name}</p>
+          <p className="text-[9px] text-slate-600 truncate">{svc.fullName}</p>
+        </div>
+      </div>
+      <AnimatePresence>
+        {hovered && svc.description && (
+          <motion.p
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="text-[10px] text-slate-500 leading-relaxed mt-1.5 pl-[34px] overflow-hidden"
+          >
+            {svc.description}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function ServicePalette({ onDragStart }) {
   const [search, setSearch] = useState('');
   const [activeProvider, setActiveProvider] = useState('aws');
@@ -89,18 +123,7 @@ export default function ServicePalette({ onDragStart }) {
                   >
                     <div className="px-2 pb-1 space-y-0.5">
                       {svcs.map(svc => (
-                        <div
-                          key={svc.id}
-                          draggable
-                          onDragStart={(e) => onDragStart(e, svc.id)}
-                          className="flex items-center gap-2.5 px-2 py-2 rounded-lg cursor-grab active:cursor-grabbing hover:bg-slate-800 transition-colors group"
-                        >
-                          <ServiceIcon service={svc} size="palette" />
-                          <div className="min-w-0 flex-1">
-                            <p className="text-[11px] font-semibold text-slate-300 truncate">{svc.name}</p>
-                            <p className="text-[9px] text-slate-600 truncate">{svc.fullName}</p>
-                          </div>
-                        </div>
+                        <PaletteItem key={svc.id} svc={svc} onDragStart={onDragStart} />
                       ))}
                     </div>
                   </motion.div>
