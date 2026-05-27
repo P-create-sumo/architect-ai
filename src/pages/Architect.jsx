@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Sparkles, MessageSquare, Layers, X } from 'lucide-react';
+import { Sparkles, MessageSquare, Layers, X, Undo2 } from 'lucide-react';
 import ServicePalette from '@/components/diagrammer/ServicePalette';
 import DiagramCanvas from '@/components/diagrammer/DiagramCanvas';
 import DiagramToolbar from '@/components/diagrammer/DiagramToolbar';
@@ -15,6 +15,7 @@ export default function Architect() {
   const [canvasMode, setCanvasMode] = useState('select');
   const [rightPanel, setRightPanel] = useState('chat'); // 'chat' | 'info' | null
   const [paletteOpen, setPaletteOpen] = useState(true);
+  const [history, setHistory] = useState([]); // stack of {nodes, arrows, groups}
 
   const handleDragStart = (e, serviceId) => {
     e.dataTransfer.setData('text/service-id', serviceId);
@@ -34,13 +35,24 @@ export default function Architect() {
     if (id) setRightPanel('info');
   };
 
-  // Apply AI-generated diagram
+  // Apply AI-generated diagram (save snapshot for undo)
   const handleApplyDiagram = ({ nodes: newNodes, arrows: newArrows, groups: newGroups }) => {
+    setHistory(prev => [...prev, { nodes, arrows, groups }]);
     setNodes(newNodes);
     setArrows(newArrows);
     setGroups(newGroups);
     setSelectedId(null);
-    setRightPanel(null); // let user see the diagram
+    setRightPanel(null);
+  };
+
+  const handleUndo = () => {
+    if (history.length === 0) return;
+    const prev = history[history.length - 1];
+    setHistory(h => h.slice(0, -1));
+    setNodes(prev.nodes);
+    setArrows(prev.arrows);
+    setGroups(prev.groups);
+    setSelectedId(null);
   };
 
   const hasSelected = selectedId && (
@@ -77,6 +89,17 @@ export default function Architect() {
             <Layers className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Palette</span>
           </button>
+          {history.length > 0 && (
+            <button
+              onClick={handleUndo}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-amber-400 hover:bg-amber-500/10 transition-all"
+              title="Annulla ultima operazione AI"
+            >
+              <Undo2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Annulla</span>
+              <span className="text-[9px] bg-amber-500/20 rounded px-1">{history.length}</span>
+            </button>
+          )}
           <button
             onClick={() => setRightPanel(v => v === 'chat' ? null : 'chat')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
@@ -179,6 +202,8 @@ export default function Architect() {
                   {rightPanel === 'chat' && (
                     <AIArchitectChat
                       onApplyDiagram={handleApplyDiagram}
+                      onUndo={handleUndo}
+                      historyCount={history.length}
                       currentNodes={nodes}
                       currentArrows={arrows}
                     />

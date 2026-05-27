@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Send, Loader2, User, Bot, RefreshCw, CheckCircle2, ChevronDown, Wand2 } from 'lucide-react';
+import { Sparkles, Send, Loader2, User, CheckCircle2, Wand2, Undo2, History } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { SERVICE_LIBRARY } from '@/lib/serviceLibrary';
 import ReactMarkdown from 'react-markdown';
@@ -18,7 +18,7 @@ const SERVICE_MAP_PROMPT = Object.values(SERVICE_LIBRARY).map(s =>
   `${s.id} = ${s.fullName} (${s.provider})`
 ).join('\n');
 
-export default function AIArchitectChat({ onApplyDiagram, currentNodes, currentArrows }) {
+export default function AIArchitectChat({ onApplyDiagram, onUndo, historyCount, currentNodes, currentArrows }) {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
@@ -27,7 +27,7 @@ export default function AIArchitectChat({ onApplyDiagram, currentNodes, currentA
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [lastDiagram, setLastDiagram] = useState(null);
+  const [appliedIdx, setAppliedIdx] = useState(null); // index of last applied message
   const bottomRef = useRef(null);
   const textareaRef = useRef(null);
 
@@ -128,7 +128,6 @@ REGOLE per il JSON:
       }));
 
       diagram = { nodes, arrows, groups };
-      setLastDiagram(diagram);
     }
 
     setMessages(prev => [...prev, {
@@ -146,8 +145,9 @@ REGOLE per il JSON:
     }
   };
 
-  const applyDiagram = (diagram) => {
+  const applyDiagram = (diagram, msgIdx) => {
     onApplyDiagram(diagram);
+    setAppliedIdx(msgIdx);
   };
 
   return (
@@ -157,10 +157,21 @@ REGOLE per il JSON:
         <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
           <Wand2 className="w-3.5 h-3.5 text-white" />
         </div>
-        <div>
+        <div className="flex-1">
           <p className="text-[12px] font-bold text-white/90">AI Architect</p>
           <p className="text-[9px] text-slate-600">Descrivi → Genera → Modifica</p>
         </div>
+        {historyCount > 0 && (
+          <button
+            onClick={onUndo}
+            className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold text-amber-400 hover:bg-amber-500/10 border border-amber-500/20 transition-all"
+            title="Annulla ultima operazione AI"
+          >
+            <Undo2 className="w-3 h-3" />
+            Annulla
+            <span className="text-[9px] bg-amber-500/20 rounded px-1 ml-0.5">{historyCount}</span>
+          </button>
+        )}
       </div>
 
       {/* Messages */}
@@ -170,7 +181,7 @@ REGOLE per il JSON:
             key={i}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`flex gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'} ${appliedIdx === i ? 'opacity-100' : ''}`}
           >
             {msg.role === 'assistant' && (
               <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -196,13 +207,28 @@ REGOLE per il JSON:
 
               {/* Apply diagram button */}
               {msg.diagram && (
-                <button
-                  onClick={() => applyDiagram(msg.diagram)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-semibold hover:bg-emerald-500/25 transition-all"
-                >
-                  <CheckCircle2 className="w-3 h-3" />
-                  Applica al diagramma ({msg.diagram.nodes.length} componenti)
-                </button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    onClick={() => applyDiagram(msg.diagram, i)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-semibold transition-all border ${
+                      appliedIdx === i
+                        ? 'bg-emerald-500/25 border-emerald-500/50 text-emerald-300'
+                        : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25'
+                    }`}
+                  >
+                    <CheckCircle2 className="w-3 h-3" />
+                    {appliedIdx === i ? 'Applicato ✓' : `Applica (${msg.diagram.nodes.length} componenti)`}
+                  </button>
+                  {appliedIdx === i && historyCount > 0 && (
+                    <button
+                      onClick={onUndo}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[10px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-all"
+                    >
+                      <Undo2 className="w-3 h-3" />
+                      Annulla
+                    </button>
+                  )}
+                </div>
               )}
             </div>
 
