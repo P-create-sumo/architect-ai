@@ -1,4 +1,4 @@
-# 🏗️ IT Architect Studio
+# 🏗️ Architect-AI — AI-powered assistant for designing scalable software architectures
 
 ---
 
@@ -48,17 +48,41 @@
 ### Local Setup
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/it-architect-studio.git
-cd it-architect-studio
+git clone https://github.com/YOUR_USERNAME/architect-ai.git
+cd architect-ai
 npm install
 npm run dev
 ```
 
 > **Note:** This app runs on the Base44 platform. Backend features (AI, database, auth) require a Base44 app ID configured in the environment.
 
-### Environment
+### Environment Variables
 
-The app uses Base44's built-in backend — no separate server needed. The `BASE44_APP_ID` is injected automatically when running inside the platform.
+Create a `.env.local` file in the project root:
+
+```env
+VITE_BASE44_APP_ID=your_app_id
+VITE_BACKEND_URL=https://api.architect-ai.base44.app
+```
+
+> 💡 **Where to find these values:** Go to your [Base44 Dashboard](https://base44.com/dashboard) → **Settings** → **API Keys**. Copy the App ID and the backend URL from there.
+
+---
+
+## 🧪 Testing
+
+### Manual MVP Testing Checklist
+
+1. **Dashboard** — Open the app, verify the project list loads correctly
+2. **Create Project** — Click "New Project", fill in name + client, confirm it appears in the list
+3. **Diagram Canvas** — Open a project, drag at least 2 services from the palette onto the canvas
+4. **Connect Services** — Hover a node's side port and drag to another node to create an arrow
+5. **AI Chat** — Open the AI Chat panel, type a description like _"3-tier web app on AWS"_ and verify a diagram is generated
+6. **Cost Estimator** — Check that the left palette shows a cost estimate after adding services
+7. **Export** — Click "Esporta" and verify PNG/PDF download works
+8. **Version History** — Save a version, make changes, restore the version and confirm the diagram reverts
+
+> Report any issues by opening a [GitHub Issue](../../issues) with the label `bug`.
 
 ---
 
@@ -102,6 +126,35 @@ The AI Architect Chat uses LLM to:
 
 ---
 
+## 🔄 How to Contribute (Pull Requests)
+
+We welcome contributions! Here's the workflow:
+
+1. **Fork** the repository and create your branch from `main`:
+   ```bash
+   git checkout -b feat/your-feature-name
+   ```
+
+2. **Make your changes** — keep commits small and focused
+
+3. **Push** your branch:
+   ```bash
+   git push origin feat/your-feature-name
+   ```
+
+4. **Open a Pull Request** targeting the `main` branch:
+   - Describe what you changed and why
+   - Link the related issue (e.g. `Closes #42`)
+   - Add screenshots if the UI changed
+
+5. **Review** — a maintainer will review your PR within a few days. Be ready for feedback and requested changes.
+
+6. **Merge** — once approved, your PR will be squash-merged into `main`.
+
+> Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines on code style, branch naming, and commit conventions.
+
+---
+
 ## 🛣️ Roadmap
 
 - [ ] Multi-user collaboration (real-time)
@@ -110,12 +163,6 @@ The AI Architect Chat uses LLM to:
 - [ ] Compliance check (GDPR, ISO 27001)
 - [ ] Pricing API integration (live AWS/Azure/GCP pricing)
 - [ ] Client portal (read-only share link)
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) before submitting a PR.
 
 ---
 
