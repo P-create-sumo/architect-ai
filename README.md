@@ -1,39 +1,57 @@
-**Welcome to your Base44 project** 
+# 🏗️ Architect AI
 
-**About**
+**AI-powered project management for architects, designers, and creative professionals.**
 
-View and Edit  your app on [Base44.com](http://Base44.com) 
+Architect AI helps you manage your projects from draft to delivery — with AI assistance at every stage. Track progress, manage revisions, and deliver on time.
 
-This project contains everything you need to run your app locally.
+---
 
-**Edit the code in your local development environment**
+## ✨ Features
 
-Any change pushed to the repo will also be reflected in the Base44 Builder.
+- 📁 **Project dashboard** — full overview of all your projects and their status
+- 🔄 **Status workflow** — Draft → In Progress → Review → Delivered
+- 🤖 **AI-assisted planning** — smart suggestions for project structure
+- 📊 **Progress tracking** — real-time stats on active, pending, and delivered work
+- ⚡ **Powered by Base44** — instant setup, no backend required
 
-**Prerequisites:** 
+## 🚀 Getting Started
 
-1. Clone the repository using the project's Git URL 
-2. Navigate to the project directory
-3. Install dependencies: `npm install`
-4. Create an `.env.local` file and set the right environment variables
-
+```bash
+git clone https://github.com/P-create-sumo/architect-ai.git
+cd architect-ai
+npm install
 ```
+
+Create a `.env.local` file:
+
+```env
 VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=your_backend_url
-
-e.g.
-VITE_BASE44_APP_ID=cbef744a8545c389ef439ea6
-VITE_BASE44_APP_BASE_URL=https://my-to-do-list-81bfaad7.base44.app
+VITE_BASE44_APP_BASE_URL=https://your-app.base44.app
 ```
 
-Run the app: `npm run dev`
+Run locally:
 
-**Publish your changes**
+```bash
+npm run dev
+```
 
-Open [Base44.com](http://Base44.com) and click on Publish.
+## 🛠 Tech Stack
 
-**Docs & Support**
+- **React 18** + Vite
+- **Tailwind CSS** + Radix UI
+- **Base44 SDK** — entities, auth, AI
+- **React Query** — data fetching
 
-Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
+## 📦 Project Structure
 
-Support: [https://app.base44.com/support](https://app.base44.com/support)
+```
+src/
+├── pages/          # Dashboard, Architect, ProjectDetail
+├── components/     # Dashboard components, modals
+├── api/            # Base44 client & entity bindings
+└── hooks/          # Custom React hooks
+```
+
+## 📄 License
+
+MIT — open source, free to use and modify.
