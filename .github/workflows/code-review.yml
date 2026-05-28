@@ -1,0 +1,20 @@
+﻿name: Code Review MVP
+on: pull_request
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for debug code
+        run: |
+          if grep -r "console.log" --include="*.js" --include="*.ts" --include="*.py" .; then
+            echo "⚠️ console.log o print trovati - rimuoverli prima del merge"
+            exit 1
+          fi
+      - name: Check for TODOs
+        run: |
+          if grep -r "TODO" --include="*.js" --include="*.ts" --include="*.py" .; then
+            echo "📝 TODO rimasti da completare"
+            exit 1
+          fi
