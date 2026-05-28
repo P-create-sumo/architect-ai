@@ -1,5 +1,13 @@
 # 🏗️ IT Architect Studio
 
+---
+
+## 🚀 NEXUS Intelligence Platform
+
+> 📢 **BETA TESTERS WANTED:** Stiamo aprendo la piattaforma a un gruppo selezionato di tester esterni (Data Engineers, AI Architects, Power Users). Se vuoi testare l'orchestrazione agentica sui tuoi dati, apri una discussione nella sezione **Discussions** o candidati lasciando un feedback!
+
+---
+
 > A professional cloud infrastructure design tool for IT consultants — built with React + AI.
 
 ![Status](https://img.shields.io/badge/status-beta-violet)
